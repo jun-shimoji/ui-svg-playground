@@ -18,7 +18,7 @@
         <v-container>
                 <div>メッセージID: {{property_id}}</div>
                 <div>世代: {{property.gen}}</div>
-                <div>送信者: {{property.sender}}</div>
+                <div>送信者: {{property.sender}}</div><br/>
                 <v-text-field
                     v-model="name_changed"
                     label="メッセージ名"
@@ -31,7 +31,7 @@
                 <v-select
                     label="メッセージ種別"
                     v-model="type_changed"
-                    :items="items"
+                    :items="property.items"
                 ></v-select>
                 <v-select
                     label="ボタン数"
@@ -58,17 +58,13 @@
 </template>
 <script>
 import { v4 as uuidv4 } from 'uuid'
+import {node_default} from '@/static/local.config.js'
+
+console.log('node_default', node_default)
 
 export default {
     name: 'Property',
     data: () => ({
-        items: [
-                {text:'文字', value:'text'},
-                {text:'画像', value:'picture'},
-                {text:'確認型テンプレート', value:'template_confirm'},
-                {text:'ボタン型テンプレート', value:'template_button'},
-                {text:'カルーセル型テンプレート', value:'template_carousel'},
-               ],
         items_action: ["メッセージ", "URI", "ポストバック", "日時選択", "位置情報"],
         branch: [1, 2, 3, 4],
         drawer: true,
@@ -109,14 +105,14 @@ export default {
             },
             set(name){ //名前が変更された場合
                 this.change_property()
-                this.$store.dispatch('setWorkName', {name: name})
+                this.$store.dispatch('set_work_name', {name: name})
             }
         },
         type_changed: {
             get() {
                 return this.$store.getters.property.type
             },
-            set(type){ //メッセージ種別が変更された場合 
+            set(type){ //メッセージ種別が変更された場合
                 this.is_template = /^template/.test(type) ? true : false //ボタン表示設定
                 switch(type) {
                     case 'text' || 'picture':
@@ -129,13 +125,15 @@ export default {
                         this.branch = [1, 2, 3, 4]
                         break
                     case 'template_carousel':
-                        this.branch = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        this.branch = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                                       11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                                       21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
                         break
                     default:
                         this.branch = []
                 }
                 this.change_property()
-                this.$store.dispatch('setWorkType', {type: type})
+                this.$store.dispatch('set_work_type', {type: type})
             }
         },
         branch_changed: {
@@ -159,18 +157,18 @@ export default {
     },
     methods: {
         change_property() {
-            this.$store.dispatch('setWorkId', {id: this.$store.getters.property.id}) //必ずidを記載
-            this.$store.dispatch('toggleFalse') //保存ボタンを押せるように
+            this.$store.dispatch('set_work_id', {id: this.$store.getters.property.id}) //必ずidを記載
+            this.$store.dispatch('toggle_false') //保存ボタンを押せるように
         },
         set_property() { //保存ボタンを押した場合
             this.edit_current_node()
             let new_node = this.make_new_node(this.property) //現nodeの一部情報を新nodeに使用
             this.$store.dispatch('addNode', {node: new_node})
-            this.$store.dispatch('resetWork')
+            this.$store.dispatch('reset_work')
             this.pict_new_path()
         },
         reset_property(){ //表示を消すを押した場合
-            this.$store.dispatch('resetState')
+            this.$store.dispatch('reset_state')
         },
         pict_new_path(){
             let x_srt = this.property.x + this.config.w    //現ノードのpath x座標
@@ -197,10 +195,11 @@ export default {
         edit_current_node() {
             let work = this.$store.getters.work
             if(work.name) {
-                this.$store.dispatch('setPropertyName', {name: work.name})
+                // this.$store.dispatch('set_current_name', {name: work.name})
+                this.$store.dispatch('set_current_element', {index: 'name', value: work.name})
             }
             if(work.type) {
-                this.$store.dispatch('setPropertyType', {type: work.type})
+                this.$store.dispatch('set_current_type', {type: work.type})
             }
             if(work.body) {
                 this.$store.dispatch('set_current_body', {body: work.body})
@@ -216,13 +215,28 @@ export default {
             let _x = _node.x + this.config.w + this.config.mr
             let _y = _node.y
             let new_nodes = []
-            console.log('_node.label', _node.label)
-            for(let i=0; i < 10; i++) {
-                let new_label = [..._node.label]
-                new_label.push(i)
+            let name_default = _node.gen%2 == 0 ? '新規メッセージ' : '新規アクション'
+            for(let i=0; i < 4; i++) {
+                let new_fline = [..._node.fline] //血統
+                new_fline.push(i)
+//                new_nodes.push(node_default)
+//                // new_nodes[i] = node_default
+//                console.log('node_default', node_default)
+//                console.log('new_nodes', new_nodes)
+//                new_nodes[i].gen = _node.gen + 1
+//                new_nodes[i].x = _x
+//                new_nodes[i].y = _y
+//                new_nodes[i].name = name_default + String(i+1)
+//                new_nodes[i].sender = _node.sender == 'user' ? "bot" : "user"
+//                new_nodes[i].type = 'none'
+//                new_nodes[i].line = []
+//                new_nodes[i].px = _node.x
+//                new_nodes[i].py = _node.y
+//                new_nodes[i].fline = new_fline
+
                 new_nodes.push({
                         id     : uuidv4(),
-                        name   : '新規メッセージ' + String(i+1),
+                        name   : name_default + String(i+1),
                         gen    : _node.gen + 1,
                         x      : _x,
                         y      : _y,
@@ -234,8 +248,15 @@ export default {
                         is_show: false,
                         px     : _node.x,
                         py     : _node.y,
-                        label  : new_label,
-                    })
+                        fline  : new_fline,
+                        items   :[
+                            {text:'文字', value:'text'},
+                            {text:'画像', value:'picture'},
+                            {text:'確認型テンプレート', value:'template_confirm'},
+                            {text:'ボタン型テンプレート', value:'template_button'},
+                            {text:'カルーセル型テンプレート', value:'template_carousel'},
+                           ],
+                })
             }
             return new_nodes
         }
