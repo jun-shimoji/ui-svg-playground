@@ -27,6 +27,7 @@
                     v-model="body_changed"
                     label="本文"
                     rows="3"
+                    v-show="property.gen%2 == 0 ? false : true"
                 ></v-textarea>
                 <v-select
                     label="メッセージ種別"
@@ -45,7 +46,7 @@
                     <div class="ml-4">
                         <v-select
                             label="アクション"
-                            :items="items_action"
+                            :items="property.items_action"
                         ></v-select>
                         <v-text-field
                             label="ラベル/テキスト"
@@ -65,12 +66,9 @@ console.log('node_default', node_default)
 export default {
     name: 'Property',
     data: () => ({
-        items_action: ["メッセージ", "URI", "ポストバック", "日時選択", "位置情報"],
         branch: [1, 2, 3, 4],
         drawer: true,
         mini: false,
-        is_template: false,
-        // is_template: true,
     }),
     computed: {
         config: {
@@ -99,6 +97,11 @@ export default {
                 return this.$store.getters.toggle
             }
         },
+        is_template: {
+            get() {
+                return this.$store.getters.is_template
+            }
+        },
         name_changed: {
             get() {
                 return this.$store.getters.property.name
@@ -113,7 +116,10 @@ export default {
                 return this.$store.getters.property.type
             },
             set(type){ //メッセージ種別が変更された場合
-                this.is_template = /^template/.test(type) ? true : false //ボタン表示設定
+                // テンプレート型かどうかチェック            
+                let _is_template = /^template/.test(type) ? "true" : "" //ボタン表示設定
+                this.$store.dispatch('is_template', {bool: _is_template})
+
                 switch(type) {
                     case 'text' || 'picture':
                         this.branch = [1]
@@ -164,7 +170,7 @@ export default {
             this.edit_current_node()
             let new_node = this.make_new_node(this.property) //現nodeの一部情報を新nodeに使用
             this.$store.dispatch('addNode', {node: new_node})
-            this.$store.dispatch('reset_work')
+            this.$store.dispatch('clr_work')
             this.pict_new_path()
         },
         reset_property(){ //表示を消すを押した場合
@@ -176,13 +182,13 @@ export default {
             let x_end = x_srt           + this.config.mr
             let y_end = y_srt
 
-            this.$store.dispatch('reset_current_line')     //現ノードの線を一旦クリア
+            this.$store.dispatch('clr_current_line')     //現ノードの線を一旦クリア
             this.$store.dispatch('set_nodes_coordinate',
                 {gen: this.property.gen, branch: this.property.branch})
             let i = 0
             let branch = this.property.branch
             while(i < branch) { //ブランチ数のpathを描く
-                this.$store.dispatch('set_current_line', {line:
+                this.$store.dispatch('set_current_path', {path:
                     {x_srt: x_srt,
                      y_srt: y_srt,
                      x_end: x_end,
@@ -199,13 +205,16 @@ export default {
                 this.$store.dispatch('set_current_element', {index: 'name', value: work.name})
             }
             if(work.type) {
-                this.$store.dispatch('set_current_type', {type: work.type})
+                // this.$store.dispatch('set_current_type', {type: work.type})
+                this.$store.dispatch('set_current_element', {index: 'type', value: work.type})
             }
             if(work.body) {
-                this.$store.dispatch('set_current_body', {body: work.body})
+                // this.$store.dispatch('set_current_body', {body: work.body})
+                this.$store.dispatch('set_current_element', {index: 'body', value: work.body})
             }
             if(work.branch) {
-                this.$store.dispatch('set_current_branch', {branch: work.branch})
+                // this.$store.dispatch('set_current_branch', {branch: work.branch})
+                this.$store.dispatch('set_current_element', {index: 'branch', value: work.branch})
             }
         },
         make_new_node(_node) {
@@ -229,7 +238,7 @@ export default {
 //                new_nodes[i].name = name_default + String(i+1)
 //                new_nodes[i].sender = _node.sender == 'user' ? "bot" : "user"
 //                new_nodes[i].type = 'none'
-//                new_nodes[i].line = []
+//                new_nodes[i].path = []
 //                new_nodes[i].px = _node.x
 //                new_nodes[i].py = _node.y
 //                new_nodes[i].fline = new_fline
@@ -244,7 +253,7 @@ export default {
                         type   : 'none',
                         active : false,
                         branch : 1,
-                        line   : [],
+                        path   : [],
                         is_show: false,
                         px     : _node.x,
                         py     : _node.y,
@@ -256,6 +265,11 @@ export default {
                             {text:'ボタン型テンプレート', value:'template_button'},
                             {text:'カルーセル型テンプレート', value:'template_carousel'},
                            ],
+                        items_action: ["メッセージ",
+                                       "URI",
+                                       "ポストバック",
+                                       "日時選択",
+                                       "位置情報"],
                 })
             }
             return new_nodes

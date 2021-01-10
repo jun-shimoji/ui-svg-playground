@@ -16,11 +16,11 @@ const node_default = {
     gen     :0,
     active  : false, //クリック状態かどうか
     branch  : 1,
-    line    : [{x_srt: x_root + w,
+    path    : [{x_srt: x_root + w,
                 y_srt: y_root + h/2,
                 x_end: x_root + w,
                 y_end: y_root + h/2}],
-    is_show : true,
+    is_show : true, //nodeとして表示するかどうか
     px      : x_root,
     py      : y_root,
     fline   : [0],  //family line 血統
@@ -32,6 +32,11 @@ const node_default = {
         {text:'ボタン型テンプレート', value:'template_button'},
         {text:'カルーセル型テンプレート', value:'template_carousel'},
        ],
+    items_action: ["メッセージ",
+                   "URI",
+                   "ポストバック",
+                   "日時選択",
+                   "位置情報"],
 }
 
 const state = {
@@ -67,7 +72,6 @@ const actions = {
 
 const mutations = {
     addNode(state, node) {
-        // state.nodes.push( node )
         Array.prototype.push.apply(state.nodes, node) //配列同士を破壊的に結合
     },
     setNodesActiveFalse(state) {
@@ -78,13 +82,11 @@ const mutations = {
         let i = 0
         state.nodes.map((v) => {
             if( (v.gen == _data.gen + 1) && (i < _data.branch) ) {
-                // v.y = y_1st
                 v.y = v.py
                 v.y += i*state.config.mb - (_data.branch-1)*state.config.mb/2
                 v.is_show = true
                 i++
             } else if( (v.gen == _data.gen + 1) && (i >= _data.branch) ) {
-                // v.y = y_1st
                 v.y = v.py
                 v.y += i*state.config.mb - (_data.branch-1)*state.config.mb/2
                 v.is_show = false

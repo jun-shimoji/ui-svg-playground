@@ -16,7 +16,7 @@ export const node_default = {
     gen     :0,
     active  : false, //クリック状態かどうか
     branch  : 1,
-    line    : [{x_srt: x_root + w,
+    path    : [{x_srt: x_root + w,
                 y_srt: y_root + h/2,
                 x_end: x_root + w,
                 y_end: y_root + h/2}],

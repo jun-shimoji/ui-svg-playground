@@ -24,7 +24,7 @@
                   fill="black"
                   >{{n.name}}</text>
             <path style="pointer-events:none"
-                    v-for="(l, ix) in n.line" :key="ix"
+                    v-for="(l, ix) in n.path" :key="ix"
                     :d="make_bezie(l)" />
 
         </g>
@@ -56,6 +56,7 @@ export default {
         y_pad()       { return this.$store.getters.config.y_pad },
         x_icon_align(){ return this.$store.getters.config.x_icon_align},
         y_icon_align(){ return this.$store.getters.config.y_icon_align},
+        type()        { return this.$store.getters.property.type},
     },
     mounted () {
       this.nodes = this.$store.getters.nodes
@@ -75,14 +76,18 @@ export default {
             //次の世代がない場合は保存ボタンを押せるようにする
             if( this.$store.getters.nodes.filter((v) => v.gen == n.gen + 1).length == 0 ){
                 this.$store.dispatch('toggle_false')
-            }            
+            }
+            // テンプレート型かどうかチェック
+            let _is_template = /^template/.test(this.type) ? "true" : "" //ボタン表示設定
+            this.$store.dispatch('is_template', {bool: _is_template})
         },
         initialize(_n) {
-            // this.$store.dispatch('toggle_true')
+            this.$store.dispatch('clr_current')
+            this.$store.dispatch('clr_work')
             this.$store.dispatch('set_current', {property: _n})
-            this.$store.dispatch('reset_work')
             this.$store.dispatch('setNodesActiveFalse')
-            this.$store.dispatch('set_current_active_true')
+            // this.$store.dispatch('set_current_active_true')
+            this.$store.dispatch('set_current_element', {index:'active', value: 'true'})
             if(_n.gen == 0 ) { //世代が0の場合は、種別は文字だけにする
                 this.$store.dispatch('set_current_element',
                     {index:'items', value: '1'} )
@@ -145,7 +150,8 @@ export default {
                     this.initialize({})
                 }
                 this.node_clicked = this.canvas_clicked = 0
-                this.$store.dispatch('set_current_active_false')
+                // this.$store.dispatch('set_current_active_false')
+                this.$store.dispatch('set_current_element', {index: "active", value: false})
             } 
         }
 
