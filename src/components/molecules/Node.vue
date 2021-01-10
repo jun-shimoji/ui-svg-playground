@@ -5,9 +5,10 @@
                   :y="n.y"
                   :width="w"
                   :height="h"
-                  :class="{'user': n.sender == 'user' ? true : false,
-                           'bot':  n.sender == 'bot'  ? true : false,
-                           'active': n.active }"
+                  :class="{'user_not_active': n.sender == 'user' && !n.active ? true : false,
+                           'bot_not_active':  n.sender == 'bot' && !n.active ? true : false,
+                           'user_active': n.sender == 'user' && n.active ? true : false,
+                           'bot_active':  n.sender == 'bot' && n.active ? true : false}"
                   :rx="rx"
                   :ry="ry"
                   @click="select(n)"
@@ -23,12 +24,8 @@
                   fill="black"
                   >{{n.name}}</text>
             <path style="pointer-events:none"
-                  v-for="(l, ix) in n.line" :key="ix"
-                    :d="' M ' + Number(l.x_srt)  + ' ' + Number(l.y_srt) +
-                        ' L ' + Number(l.x_end)  + ' ' + Number(l.y_end) + ' z'" />
-            <!-- <path style="pointer-events:none"
                     v-for="(l, ix) in n.line" :key="ix"
-                    :d="make_bezie(l, ix, n)" /> -->
+                    :d="make_bezie(l)" />
 
         </g>
     </svg>
@@ -77,18 +74,22 @@ export default {
             }
             //次の世代がない場合は保存ボタンを押せるようにする
             if( this.$store.getters.nodes.filter((v) => v.gen == n.gen + 1).length == 0 ){
-                this.$store.dispatch('toggleFalse')
+                this.$store.dispatch('toggle_false')
             }            
         },
         initialize(_n) {
-            // this.$store.dispatch('toggleTrue')
-            this.$store.dispatch('setProperty', {property: _n})
-            this.$store.dispatch('resetWork')
+            // this.$store.dispatch('toggle_true')
+            this.$store.dispatch('set_current', {property: _n})
+            this.$store.dispatch('reset_work')
             this.$store.dispatch('setNodesActiveFalse')
-            this.$store.dispatch('setPropertyActiveTrue')
+            this.$store.dispatch('set_current_active_true')
+            if(_n.gen == 0 ) { //世代が0の場合は、種別は文字だけにする
+                this.$store.dispatch('set_current_element',
+                    {index:'items', value: '1'} )
+            }
         },
         getImgUrl(msg_type) {
-            return require('../../assets/icon-' + msg_type + '.svg')
+            return require('@/assets/icon-' + msg_type + '.svg')
         },
         pan (e) {
             var [x, y, w, h] = this.viewport.split(' ').map(v => parseFloat(v))
@@ -119,25 +120,18 @@ export default {
             this.viewport = [x, y, w, h].join(' ')
         },
         // ベジェ曲線
-//        make_bezie(l, ix, n) {
-//            console.log('ix', ix)
-//            console.log('l.x_srt', l.x_srt)
-//            console.log('l.y_srt', l.y_srt)
-//            console.log('l.x_end', l.x_end)
-//            console.log('l.y_end', l.y_end)
-//            console.log('mr', this.mr)
-//            console.log('n.gen', n.gen)
-//
-//            let bezie =            
-//                ' M ' + Number(l.x_srt)  + ' ' + Number(l.y_srt) +
-//                ' C ' + (Number(n.gen)+1)*Number(this.mr)  + ' ' + 
-//                        Number(l.y_srt) + ', ' +
-//                        (Number(n.gen)+1)*Number(this.mr)  + ' ' +
-//                        Number(l.y_end) + ', ' +
-//                '   ' + Number(l.x_end)  + ' ' + Number(l.y_end)
-//            // return "M 0 0 C 150 0, 75 300, 300 300"
-//            return bezie
-        // },
+        make_bezie (l) {
+            let cx_srt = l.x_srt == l.x_end ? l.x_srt : l.x_srt + this.mr/2
+            let cy_srt = l.y_srt
+            let cx_end = l.x_srt == l.x_end ? l.x_srt : l.x_srt + this.mr/4
+            let cy_end = l.y_end
+            let bezie =
+                ' M ' + l.x_srt + ' ' + l.y_srt +
+                ' C ' + cx_srt  + ' ' +  cy_srt + ', ' +
+                        cx_end  + ' ' +  cy_end + ', ' +
+                '   ' + l.x_end + ' ' + l.y_end
+            return bezie
+        },
         field_click() { //フィールドをクリックした場合
             this.canvas_clicked++
             // nodeをクリックした後にfieldをクリックした場合
@@ -160,26 +154,34 @@ export default {
 </script>
 
 <style scoped>
-    .user {
+    .user_not_active {
       fill:#FFF;
       stroke:lightgray;
       stroke-width: 4px;
       /* transition: all 0.4s; */
     }
-    .bot {
+    .bot_not_active {
       fill:#EAFCEB;
       stroke:#73DE74;
       stroke-width: 4px;
+      /* transition: all 0.4s; */
+    }
+    .user_active {
+      fill:#FFF;
+      stroke:lightgray;
+      stroke-width: 8px;
+      /* transition: all 0.4s; */
+    }
+    .bot_active {
+      fill:#EAFCEB;
+      stroke:#73DE74;
+      stroke-width: 8px;
       /* transition: all 0.4s; */
     }
     .bg{
       /* background-color:#688BBC; */
       background-color:#F2F2F2;
       border:solid 4px #EFF2F5;
-    }
-    .active {
-        stroke: magenta;
-        stroke-width: 6px;
     }
     path {
         fill:transparent;
