@@ -1,21 +1,16 @@
-const getDefaultState = () => {
-    return {
-        //表示・プロパティ両方で使う要素
-        toggle: true,       //保存ボタン
-        is_template: false, //テンプレートかどうか
+const state = {
+    toggle: true,       //保存ボタン
+    is_template: false, //テンプレートかどうか
 
-        property: {},
-        work: {},
-    }
+    property: {},
+    work: {},
 }
 
-const state = getDefaultState()
-
 const getters = {
-    toggle       : state     => state.toggle,
-    is_template  : state     => state.is_template,
-    property     : state     => state.property,
-    work         : state     => state.work,
+    toggle       : state => state.toggle,
+    is_template  : state => state.is_template,
+    property     : state => state.property,
+    work         : state => state.work,
 }
 
 const actions = {
@@ -32,12 +27,6 @@ const actions = {
         let data = '{"index":"' + index + '", "value":"' + value +'"}' // 複数の引数の場合mutationには文字列で渡す
         commit('set_current_element', data)
     },
-    // set_current_name({ commit },         { name }) { commit('set_current_name', name) },
-    // set_current_type({ commit },         { type }) { commit('set_current_type', type) },
-    // set_current_body({ commit },         { body }) { commit('set_current_body', body) },
-    // set_current_branch({ commit },       { branch }){ commit('set_current_branch', branch)},
-    // set_current_active_true({ commit })  { commit('set_current_active_true') },
-    // set_current_active_false({ commit }) { commit('set_current_active_false')},
     set_current_path({ commit },       { path }) { commit('set_current_path', path )},
     clr_current({ commit } )           { commit('clr_current')},
     clr_current_line({ commit })       { commit('clr_current_line')},
@@ -69,11 +58,6 @@ const mutations = {
         let _data = JSON.parse(data) // 引数をjson形式に変更
         console.log('_data.index', _data.index)
         console.log('_data.value', _data.value)
-//        if(_data.index == 'items') {
-//            state.property[_data.index].length = Number(_data.value)
-//        } else {
-//            state.property[_data.index] = _data.value
-//        }
         switch(_data.index) {
             case 'items':
                 state.property[_data.index].length = Number(_data.value)
@@ -88,15 +72,9 @@ const mutations = {
                 state.property[_data.index] = _data.value
         }
     },
-    // set_current_name(state, name)     { state.property.name = name },
-    // set_current_type(state, type)     { state.property.type = type },
-    // set_current_body(state, body)     { state.property.body = body},
-    // set_current_branch(state, branch) { state.property.branch = branch},
-    // set_current_active_true(state)    { state.property.active = true },
     set_current_path(state, path)   { state.property.path.push(path) },
     clr_current(state)              { state.property = {}},
     clr_current_line(state)         { state.property.path.length = 0 },
-    // set_current_active_false(state)   { state.property.active = false},
 
     //Work用
     set_work(state, work)          { state.work = work },

@@ -8,14 +8,16 @@
     >
         <template v-slot:prepend>
           <v-list-item two-line>
-                <v-btn icon @click.stop="mini = !mini"><v-app-bar-nav-icon /></v-btn>
+                <!-- <v-btn icon @click.stop="mini = !mini"><v-app-bar-nav-icon /></v-btn> -->
+                <nav-icon @click_btn="mini = $event" />
                 <v-btn @click="set_property" :disabled="toggle" class="ml-4">保存</v-btn>
                 <!-- <v-btn @click="reset_property" class="ml-4">表示を消す</v-btn> -->
-
           </v-list-item>
-
         </template>
+
         <v-container>
+                <specific-property />
+                <hr>
                 <div>メッセージID: {{property_id}}</div>
                 <div>世代: {{property.gen}}</div>
                 <div>送信者: {{property.sender}}</div><br/>
@@ -59,12 +61,19 @@
 </template>
 <script>
 import { v4 as uuidv4 } from 'uuid'
-import {node_default} from '@/static/local.config.js'
+// import {node_default} from '@/static/local.config.js'
+import {node_default} from '../../static/local.config.js'
+import NavIcon from '../atoms/NavIcon.vue'
+import SpecificProperty from '../atoms/SpecificProperty.vue'
 
 console.log('node_default', node_default)
 
 export default {
     name: 'Property',
+    components: {
+        NavIcon,
+        SpecificProperty,
+    },      
     data: () => ({
         branch: [1, 2, 3, 4],
         drawer: true,
@@ -201,19 +210,15 @@ export default {
         edit_current_node() {
             let work = this.$store.getters.work
             if(work.name) {
-                // this.$store.dispatch('set_current_name', {name: work.name})
                 this.$store.dispatch('set_current_element', {index: 'name', value: work.name})
             }
             if(work.type) {
-                // this.$store.dispatch('set_current_type', {type: work.type})
                 this.$store.dispatch('set_current_element', {index: 'type', value: work.type})
             }
             if(work.body) {
-                // this.$store.dispatch('set_current_body', {body: work.body})
                 this.$store.dispatch('set_current_element', {index: 'body', value: work.body})
             }
             if(work.branch) {
-                // this.$store.dispatch('set_current_branch', {branch: work.branch})
                 this.$store.dispatch('set_current_element', {index: 'branch', value: work.branch})
             }
         },
@@ -228,21 +233,6 @@ export default {
             for(let i=0; i < 4; i++) {
                 let new_fline = [..._node.fline] //血統
                 new_fline.push(i)
-//                new_nodes.push(node_default)
-//                // new_nodes[i] = node_default
-//                console.log('node_default', node_default)
-//                console.log('new_nodes', new_nodes)
-//                new_nodes[i].gen = _node.gen + 1
-//                new_nodes[i].x = _x
-//                new_nodes[i].y = _y
-//                new_nodes[i].name = name_default + String(i+1)
-//                new_nodes[i].sender = _node.sender == 'user' ? "bot" : "user"
-//                new_nodes[i].type = 'none'
-//                new_nodes[i].path = []
-//                new_nodes[i].px = _node.x
-//                new_nodes[i].py = _node.y
-//                new_nodes[i].fline = new_fline
-
                 new_nodes.push({
                         id     : uuidv4(),
                         name   : name_default + String(i+1),
